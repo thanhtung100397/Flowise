@@ -2,6 +2,7 @@ import { OpenAIEmbeddings, OpenAIEmbeddingsParams } from '@langchain/openai'
 import { ICommonObject, INode, INodeData, INodeOptionsValue, INodeParams } from '../../../src/Interface'
 import { getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { MODEL_TYPE, getModels } from '../../../src/modelLoader'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 
 class OpenAIEmbedding_Embeddings implements INode {
     label: string
@@ -72,6 +73,13 @@ class OpenAIEmbedding_Embeddings implements INode {
                 type: 'number',
                 optional: true,
                 additionalParams: true
+            },
+            {
+                label: 'Proxy Url',
+                name: 'proxyUrl',
+                type: 'string',
+                optional: true,
+                additionalParams: true
             }
         ]
     }
@@ -90,6 +98,7 @@ class OpenAIEmbedding_Embeddings implements INode {
         const basePath = nodeData.inputs?.basepath as string
         const modelName = nodeData.inputs?.modelName as string
         const dimensions = nodeData.inputs?.dimensions as string
+        const proxyUrl = nodeData.inputs?.proxyUrl as string
 
         if (nodeData.inputs?.credentialId) {
             nodeData.credential = nodeData.inputs?.credentialId
@@ -107,7 +116,9 @@ class OpenAIEmbedding_Embeddings implements INode {
         if (timeout) obj.timeout = parseInt(timeout, 10)
         if (dimensions) obj.dimensions = parseInt(dimensions, 10)
 
-        const model = new OpenAIEmbeddings(obj, { basePath })
+        const httpAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined
+
+        const model = new OpenAIEmbeddings(obj, { basePath, httpAgent })
         return model
     }
 }
